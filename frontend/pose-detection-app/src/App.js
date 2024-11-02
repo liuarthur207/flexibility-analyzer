@@ -9,9 +9,11 @@ const App = () => {
     const [recordedChunks, setRecordedChunks] = useState([]);
     const videoRef = useRef(null);
     const mediaRecorderRef = useRef(null);
-    const fileInputRef = useRef(null); // Create a ref for the file input
+    const fileInputRef = useRef(null);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const timerRef = useRef(null); // Ref to store the timer interval
 
-    // Function to check server health
+
     const checkServerHealth = async () => {
         try {
             const response = await fetch('http://localhost:8000/health');
@@ -26,7 +28,6 @@ const App = () => {
         }
     };
 
-    // Handle video file selection
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file && file.type.startsWith('video/')) {
@@ -37,7 +38,6 @@ const App = () => {
         }
     };
 
-    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!videoFile) return;
@@ -81,30 +81,32 @@ const App = () => {
 
         mediaRecorder.start();
         setIsRecording(true);
+        setRecordingTime(0); // Reset recording time
+        timerRef.current = setInterval(() => {
+          setRecordingTime((prevTime) => prevTime + 1); // Increment the timer correctly
+      }, 1000);
     };
 
     const stopRecording = () => {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-  
-      mediaRecorderRef.current.onstop = () => {
-          const currentRecordedChunks = recordedChunks; // Capture current state
-          const blob = new Blob(currentRecordedChunks, { type: 'video/webm' });
-          const file = new File([blob], 'recorded_video.webm', { type: 'video/webm' });
-          setVideoFile(file); // Update video file
-          setRecordedChunks([]); // Reset recorded chunks
-  
-          // Update the input file field to reflect the new file
-          const fileInput = document.querySelector('input[type="file"]');
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(file);
-          fileInput.files = dataTransfer.files;
-  
-          videoRef.current.srcObject.getTracks().forEach(track => track.stop()); // Stop all tracks
-      };
-  };
-  
-    // Check server health on component mount
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+
+        mediaRecorderRef.current.onstop = () => {
+            clearInterval(timerRef.current); // Clear the timer
+            const currentRecordedChunks = recordedChunks;
+            const blob = new Blob(currentRecordedChunks, { type: 'video/webm' });
+            const file = new File([blob], 'recorded_video.webm', { type: 'video/webm' });
+            setVideoFile(file);
+            setRecordedChunks([]);
+
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInputRef.current.files = dataTransfer.files;
+
+            videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+        };
+    };
+
     useEffect(() => {
         checkServerHealth();
     }, []);
@@ -123,12 +125,12 @@ const App = () => {
                 <label>
                     Video File:
                     <input
-                        ref={fileInputRef} // Use the ref here
+                        ref={fileInputRef}
                         type="file"
                         accept="video/mp4,video/x-m4v,video/*"
                         onChange={handleFileChange}
                         required={!isRecording}
-                        disabled={isRecording} // Disable file input during recording
+                        disabled={isRecording}
                     />
                 </label>
                 <button type="submit" disabled={loading || isRecording}>
@@ -136,6 +138,7 @@ const App = () => {
                 </button>
             </form>
             <div> 
+              {isRecording && <h3>Recording Time: {recordingTime} seconds</h3>}
               <h3> (only last 30 seconds will be used!) </h3>
             </div>
             {averageAngle !== null && (
