@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const App = () => {
     const [videoFile, setVideoFile] = useState(null);
-    const [averageAngle, setAverageAngle] = useState(null);
+    const [averageBackAngle, setAverageBackAngle] = useState(null);
+    const [gptRecommendations, setGptRecommendations] = useState(null); // State for GPT recommendations
     const [serverStatus, setServerStatus] = useState('Checking...');
     const [loading, setLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
@@ -11,8 +12,7 @@ const App = () => {
     const mediaRecorderRef = useRef(null);
     const fileInputRef = useRef(null);
     const [recordingTime, setRecordingTime] = useState(0);
-    const timerRef = useRef(null); // Ref to store the timer interval
-
+    const timerRef = useRef(null);
 
     const checkServerHealth = async () => {
         try {
@@ -57,7 +57,7 @@ const App = () => {
             }
 
             const data = await response.json();
-            setAverageAngle(data.average_angle);
+            setAverageBackAngle(data.average_angle);
         } catch (error) {
             console.error(error);
             alert('An error occurred while processing the video.');
@@ -81,10 +81,10 @@ const App = () => {
 
         mediaRecorder.start();
         setIsRecording(true);
-        setRecordingTime(0); // Reset recording time
+        setRecordingTime(0); 
         timerRef.current = setInterval(() => {
-          setRecordingTime((prevTime) => prevTime + 1); // Increment the timer correctly
-      }, 1000);
+          setRecordingTime((prevTime) => prevTime + 1);
+        }, 1000);
     };
 
     const stopRecording = () => {
@@ -92,7 +92,7 @@ const App = () => {
         setIsRecording(false);
 
         mediaRecorderRef.current.onstop = () => {
-            clearInterval(timerRef.current); // Clear the timer
+            clearInterval(timerRef.current);
             const currentRecordedChunks = recordedChunks;
             const blob = new Blob(currentRecordedChunks, { type: 'video/webm' });
             const file = new File([blob], 'recorded_video.webm', { type: 'video/webm' });
@@ -107,13 +107,40 @@ const App = () => {
         };
     };
 
+    const getRecommendations = async () => {
+        if (averageBackAngle === null) {
+            alert('Please calculate the average angle first!');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8000/back_recommendation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ angle: averageBackAngle })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get recommendations from server');
+            }
+
+            const data = await response.json();
+            setGptRecommendations(data.advice); // Assuming the API returns 'advice'
+        } catch (error) {
+            console.error(error);
+            alert('An error occurred while getting recommendations.');
+        }
+    };
+
     useEffect(() => {
         checkServerHealth();
     }, []);
 
     return (
         <div>
-            <h1>Calculate Average Angle from Video</h1>
+            <h1>Flexibility Tester with AI!!!</h1>
             <h2>Server Status: {serverStatus}</h2>
             <video ref={videoRef} autoPlay playsInline style={{ display: isRecording ? 'block' : 'none' }}></video>
             <div>
@@ -141,11 +168,21 @@ const App = () => {
               {isRecording && <h3>Recording Time: {recordingTime} seconds</h3>}
               <h3> (only last 30 seconds will be used!) </h3>
             </div>
-            {averageAngle !== null && (
+            {averageBackAngle !== null && (
                 <div>
-                    <h2>Average Angle: {averageAngle}</h2>
+                    <h2>Average Angle: {averageBackAngle}</h2>
+                    <button onClick={getRecommendations} disabled={loading}>
+                        Get GPT Recommendations
+                    </button>
                 </div>
             )}
+{gptRecommendations && (
+    <div>
+        <h2>Recommendations:</h2>
+        <p dangerouslySetInnerHTML={{ __html: gptRecommendations.replace(/\n/g, '<br />') }} />
+    </div>
+)}
+
         </div>
     );
 };

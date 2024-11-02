@@ -5,9 +5,23 @@ import mediapipe as mp
 import numpy as np
 import tempfile
 import os
+from openai import OpenAI
 
+client = OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
 app = Flask(__name__, static_folder='../frontend/pose-detection-app/build/static', static_url_path='/static')
 CORS(app)  # Enable CORS for all routes
+
+def get_response(context, prompt):
+
+    completion = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": context},
+        {"role": "user", "content": prompt}
+    ]
+    )
+
+    return completion.choices[0].message.content
 
 def angle_between_points(p1, p2, p3):
     a = np.array(p1)
@@ -88,5 +102,26 @@ def get_back_angle():
     os.remove(video_path)  # Clean up the temporary file
     return jsonify({'average_angle': int(average_angle)})
 
+@app.route('/back_recommendation', methods=['POST'])
+def request_back():
+    try:
+        # Retrieve angle from request data
+        data = request.json
+        angle = data.get("angle", None)
+
+        if angle is None:
+            return jsonify({'error': 'No angle provided'}), 400
+
+        context = "You are a back flexibility coach. Your job is to give advice and exercise recommendations based on a child pose flexibility angle which I give you. Average would be around 30-40. Give a Flexibility rating, followed by a new line, followed by advice followed by a new line, followed by a list of recommended exercises. Be short and concise."
+        prompt = f"{context} The angle is: {angle} degrees."
+
+        # Generate response from OpenAI
+        advice = get_response(context, prompt)
+        
+        return jsonify({'status': 'OK', 'advice': advice}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 if __name__ == '__main__':
     app.run(port=8000, debug=True)
