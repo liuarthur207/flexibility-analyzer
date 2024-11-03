@@ -51,8 +51,6 @@ def send_static(path):
 def health_check():
     return jsonify({'status': 'OK'}), 200
 
-
-
 @app.route('/get_back_angle', methods=['POST'])
 def get_back_angle():
     if 'video' not in request.files:
