@@ -11,3 +11,13 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.file-input-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  margin: 20px 0; /* Optional: Add margin for spacing */
+}
+
+input[type="file"] {
+  margin: 0 auto; /* Optional: Center input within label */
+}

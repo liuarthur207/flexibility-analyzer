@@ -1,16 +1,77 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
 
-body {
-    font-family: 'Roboto', sans-serif; /* Change font here */
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    justify-content: center; /* Center horizontally */
+
+html, body {
+    height: 100%; /* Ensure both html and body take full height */
+    min-height: 100vh; /* Ensure they expand to fit the viewport */
+    margin: 0; /* Remove default margins */
 }
 
+body {
+    background: linear-gradient(to bottom right, #6a11cb, black);
+    background-attachment: fixed; /* Keeps the background fixed while content scrolls */
+    background-size: cover; /* Ensures it covers the entire viewport */
+}
+
+
+.gpt-recommendations-box {
+    background-color: transparent; /* Transparent background */
+    padding: 20px; /* Spacing inside the box */
+    border: 2px solid white; /* White border for the hollow effect */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: none; /* Remove shadow */
+    margin-top: 20px; /* Space above the box */
+    margin: 20px auto; /* Center box horizontally and add space above/below */
+    max-width: 1000px;
+    color: white; /* Text color */
+}
+
+
+
 .container {
+    margin: 20px auto; /* Center box horizontally and add space above/below */
+    max-width: 600px;
+    min-height: 100vh; /* Full height of the viewport */
+    width: 100%; /* Full width */
+    display: flex;
+    flex-direction: column; /* Align children in a column */
+    justify-content: center; /* Center children vertically */
     text-align: center; /* Center text */
-    max-width: 600px; /* Limit width */
-    width: 100%; /* Full width within max */
+    color: white;
+    padding: 20px; /* Adjust padding as necessary */
+    box-sizing: border-box; /* Include padding in height calculation */
+}
+
+
+
+
+.file-input-container {
+    display: flex;
+    justify-content: center;
+    margin: 10px auto;
+    width: 100%;
+}
+
+.file-label {
+    width: 200px; /* Adjust width to control centering */
+    text-align: center;
+}
+
+button {
+    background-color: blue;
+    color: white;
+    border: none;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: magenta;
 }

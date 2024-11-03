@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@ffmpeg/ffmpeg": "^0.12.10"
+    "@ffmpeg/ffmpeg": "^0.12.10",
+    "react-router-dom": "^6.27.0"
   }
 }

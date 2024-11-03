@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom';
 import './styles.css';
 
 const App = () => {
@@ -14,6 +15,8 @@ const App = () => {
     const fileInputRef = useRef(null);
     const [recordingTime, setRecordingTime] = useState(0);
     const timerRef = useRef(null);
+    const [selectedFileName, setSelectedFileName] = useState(''); // Define the state
+
 
     const checkServerHealth = async () => {
         try {
@@ -33,6 +36,7 @@ const App = () => {
         const file = e.target.files[0];
         if (file && (file.type.startsWith('video/') || file.type.startsWith('image/'))) {
             setVideoFile(file);
+            setSelectedFileName(file.name);
         } else {
             alert('Please upload a valid video or image file.');
             setVideoFile(null);
@@ -102,6 +106,7 @@ const App = () => {
   
               // Set the video file and reset recorded chunks
               setVideoFile(file);
+              
               setRecordedChunks([]);
   
               // Update file input
@@ -142,56 +147,92 @@ const App = () => {
         }
     };
 
+    const handleDrop = (e) => {
+      e.preventDefault();
+  
+
+      const file = e.dataTransfer.files[0];
+      if (file && (file.type.startsWith('video/') || file.type.startsWith('image/'))) {
+          setVideoFile(file);
+          setSelectedFileName(file.name);
+          // Update file input
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          fileInputRef.current.files = dataTransfer.files;
+      } else {
+          alert('Please upload a valid video or image file.');
+      }
+  };
+
+  const handleDragOver = (e) => {
+      e.preventDefault();
+  };
+
     useEffect(() => {
         checkServerHealth();
     }, []);
 
+
+
     return (
-        <div className="container">
-            <h1>Flexibility Tester with AI!!!</h1>
-            <h2>Server Status: {serverStatus}</h2>
-            <video ref={videoRef} autoPlay playsInline style={{ display: isRecording ? 'block' : 'none' }}></video>
-            <div>
-                <button onClick={isRecording ? stopRecording : startRecording}>
-                    {isRecording ? 'Stop Recording' : 'Start Recording'}
-                </button>
-                {isRecording && <h3>Recording Time: {recordingTime} seconds</h3>}
-            </div>
-            <br />
-            <h3>Or choose file:</h3>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="video/mp4,video/x-m4v,video/webm,video/*,image/*"
-                        onChange={handleFileChange}
-                        required={!isRecording}
-                        disabled={isRecording}
-                    />
-                </label>
-                <button type="submit" disabled={loading || isRecording}>
-                    {loading ? 'Processing...' : 'Submit'}
-                </button>
-            </form>
-            <div>
-                <h3>(only last 30 seconds will be used!)</h3>
-            </div>
-            {averageBackAngle !== null && (
-                <div>
-                    <h2>Average Angle: {averageBackAngle}</h2>
-                    <button onClick={getRecommendations} disabled={loading}>
-                        Get GPT Recommendations
-                    </button>
-                </div>
-            )}
-            {gptRecommendations && (
-                <div>
-                    <h2>Recommendations:</h2>
-                    <p dangerouslySetInnerHTML={{ __html: gptRecommendations.replace(/\n/g, '<br />') }} />
-                </div>
-            )}
+<div className="container">
+    <h1>Back Flexibility Analyzer</h1>
+    <video ref={videoRef} autoPlay playsInline style={{ display: isRecording ? 'block' : 'none' }}></video>
+    <div>
+        <button onClick={isRecording ? stopRecording : startRecording}>
+            {isRecording ? 'Stop Recording' : 'Start Recording'}
+        </button>
+        {isRecording && <h3>Recording Time: {recordingTime} seconds</h3>}
+    </div>
+    <br />
+    <h3>Or choose file (image or video):</h3>
+    <form onSubmit={handleSubmit}>
+        <div
+            className="file-input-container"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            style={{ border: '2px dashed #ccc', textAlign: 'center' }}
+        >
+            <button onClick={() => fileInputRef.current.click()} disabled={isRecording}>
+                Choose File
+            </button>
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="video/mp4,video/x-m4v,video/webm,video/*,image/*"
+                onChange={handleFileChange}
+                required={!isRecording}
+                disabled={isRecording}
+                style={{ display: 'none' }}
+            />
         </div>
+        {selectedFileName && <p>{selectedFileName}</p>}
+        <br />
+        <button type="submit" disabled={loading || isRecording}>
+            {loading ? 'Processing...' : 'Submit'}
+        </button>
+    </form>
+    <div>
+        <h3>(only last 30 seconds will be used!)</h3>
+    </div>
+    {averageBackAngle !== null && (
+        <div>
+            <h2>Average Angle: {averageBackAngle}</h2>
+            <button onClick={getRecommendations} disabled={loading}>
+                Get GPT Recommendations
+            </button>
+        </div>
+    )}
+    {gptRecommendations && (
+        <div className="gpt-recommendations-box">
+            <h2>Recommendations:</h2>
+            <p dangerouslySetInnerHTML={{ __html: gptRecommendations.replace(/\n/g, '<br />') }} />
+        </div>
+    )}
+    <h2>Server Status: {serverStatus}</h2>
+</div>
+
+        
     );
 };
 
