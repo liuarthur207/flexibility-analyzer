@@ -19,7 +19,7 @@ const App = () => {
 
     const checkServerHealth = async () => {
         try {
-            const response = await fetch('http://localhost:8000/health');
+            const response = await fetch('https://flexibility-analyzer-r.up.railway.app:8000/health');
             if (response.ok) {
                 const data = await response.json();
                 setServerStatus(data.status);
