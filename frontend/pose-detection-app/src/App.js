@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import './styles.css';
 
 const App = () => {
     const [videoFile, setVideoFile] = useState(null);
     const [averageBackAngle, setAverageBackAngle] = useState(null);
-    const [gptRecommendations, setGptRecommendations] = useState(null); // State for GPT recommendations
+    const [gptRecommendations, setGptRecommendations] = useState(null);
     const [serverStatus, setServerStatus] = useState('Checking...');
     const [loading, setLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
@@ -30,10 +31,10 @@ const App = () => {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        if (file && file.type.startsWith('video/')) {
+        if (file && (file.type.startsWith('video/') || file.type.startsWith('image/'))) {
             setVideoFile(file);
         } else {
-            alert('Please upload a valid video file.');
+            alert('Please upload a valid video or image file.');
             setVideoFile(null);
         }
     };
@@ -81,31 +82,38 @@ const App = () => {
 
         mediaRecorder.start();
         setIsRecording(true);
-        setRecordingTime(0); 
+        setRecordingTime(0);
         timerRef.current = setInterval(() => {
           setRecordingTime((prevTime) => prevTime + 1);
         }, 1000);
     };
 
     const stopRecording = () => {
-        mediaRecorderRef.current.stop();
-        setIsRecording(false);
-
-        mediaRecorderRef.current.onstop = () => {
-            clearInterval(timerRef.current);
-            const currentRecordedChunks = recordedChunks;
-            const blob = new Blob(currentRecordedChunks, { type: 'video/webm' });
-            const file = new File([blob], 'recorded_video.webm', { type: 'video/webm' });
-            setVideoFile(file);
-            setRecordedChunks([]);
-
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInputRef.current.files = dataTransfer.files;
-
-            videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-        };
-    };
+      if (mediaRecorderRef.current) {
+          mediaRecorderRef.current.stop();
+          setIsRecording(false);
+  
+          mediaRecorderRef.current.onstop = () => {
+              clearInterval(timerRef.current);
+  
+              // Create a Blob from the recorded chunks
+              const blob = new Blob(recordedChunks, { type: 'video/mp4' }); // Change to MP4
+              const file = new File([blob], 'recorded_video.mp4', { type: 'video/mp4' }); // Change file name to MP4
+  
+              // Set the video file and reset recorded chunks
+              setVideoFile(file);
+              setRecordedChunks([]);
+  
+              // Update file input
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(file);
+              fileInputRef.current.files = dataTransfer.files;
+  
+              // Stop all video tracks
+              videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+          };
+      }
+  };
 
     const getRecommendations = async () => {
         if (averageBackAngle === null) {
@@ -127,7 +135,7 @@ const App = () => {
             }
 
             const data = await response.json();
-            setGptRecommendations(data.advice); // Assuming the API returns 'advice'
+            setGptRecommendations(data.advice);
         } catch (error) {
             console.error(error);
             alert('An error occurred while getting recommendations.');
@@ -139,7 +147,7 @@ const App = () => {
     }, []);
 
     return (
-        <div>
+        <div className="container">
             <h1>Flexibility Tester with AI!!!</h1>
             <h2>Server Status: {serverStatus}</h2>
             <video ref={videoRef} autoPlay playsInline style={{ display: isRecording ? 'block' : 'none' }}></video>
@@ -147,14 +155,16 @@ const App = () => {
                 <button onClick={isRecording ? stopRecording : startRecording}>
                     {isRecording ? 'Stop Recording' : 'Start Recording'}
                 </button>
+                {isRecording && <h3>Recording Time: {recordingTime} seconds</h3>}
             </div>
+            <br />
+            <h3>Or choose file:</h3>
             <form onSubmit={handleSubmit}>
                 <label>
-                    Video File:
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept="video/mp4,video/x-m4v,video/*"
+                        accept="video/mp4,video/x-m4v,video/webm,video/*,image/*"
                         onChange={handleFileChange}
                         required={!isRecording}
                         disabled={isRecording}
@@ -164,9 +174,8 @@ const App = () => {
                     {loading ? 'Processing...' : 'Submit'}
                 </button>
             </form>
-            <div> 
-              {isRecording && <h3>Recording Time: {recordingTime} seconds</h3>}
-              <h3> (only last 30 seconds will be used!) </h3>
+            <div>
+                <h3>(only last 30 seconds will be used!)</h3>
             </div>
             {averageBackAngle !== null && (
                 <div>
@@ -176,13 +185,12 @@ const App = () => {
                     </button>
                 </div>
             )}
-{gptRecommendations && (
-    <div>
-        <h2>Recommendations:</h2>
-        <p dangerouslySetInnerHTML={{ __html: gptRecommendations.replace(/\n/g, '<br />') }} />
-    </div>
-)}
-
+            {gptRecommendations && (
+                <div>
+                    <h2>Recommendations:</h2>
+                    <p dangerouslySetInnerHTML={{ __html: gptRecommendations.replace(/\n/g, '<br />') }} />
+                </div>
+            )}
         </div>
     );
 };

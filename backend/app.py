@@ -51,15 +51,18 @@ def send_static(path):
 def health_check():
     return jsonify({'status': 'OK'}), 200
 
+
+
 @app.route('/get_back_angle', methods=['POST'])
 def get_back_angle():
     if 'video' not in request.files:
-        return {'error': 'No video file provided'}, 400
+        return {'error': 'No video or image file provided'}, 400
 
     video_file = request.files['video']
     
     # Use a temporary file for the video upload
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
+    suffix = '.webm' if video_file.filename.endswith('.webm') else '.mp4'
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
         video_path = temp_file.name
         video_file.save(video_path)
 
@@ -112,7 +115,7 @@ def request_back():
         if angle is None:
             return jsonify({'error': 'No angle provided'}), 400
 
-        context = "You are a back flexibility coach. Your job is to give advice and exercise recommendations based on a child pose flexibility angle which I give you. Average would be around 30-40. Give a Flexibility rating, followed by a new line, followed by advice followed by a new line, followed by a list of recommended exercises. Be short and concise."
+        context = "You are a back flexibility coach. Your job is to give advice and exercise recommendations based on a cobra pose flexibility angle which I give you. Average would be around 30-40. Give a basic flexibility rating, followed by a two new line, followed by advice followed by a new line, followed by a list of recommended exercises. Be short and concise."
         prompt = f"{context} The angle is: {angle} degrees."
 
         # Generate response from OpenAI
