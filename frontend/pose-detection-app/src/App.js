@@ -19,7 +19,7 @@ const App = () => {
 
     const checkServerHealth = async () => {
         try {
-            const response = await fetch('https://flexibility-analyzer-r.up.railway.app:8000/health');
+            const response = await fetch('http://flexibility-analyzer-r.up.railway.app/health');
             if (response.ok) {
                 const data = await response.json();
                 setServerStatus(data.status);
@@ -51,7 +51,7 @@ const App = () => {
         formData.append('video', videoFile);
 
         try {
-            const response = await fetch('http://localhost:8000/get_back_angle', {
+            const response = await fetch('http://flexibility-analyzer-r.up.railway.app/get_back_angle', {
                 method: 'POST',
                 body: formData
             });
@@ -126,7 +126,7 @@ const App = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:8000/back_recommendation', {
+            const response = await fetch('http://flexibility-analyzer-r.up.railway.app/back_recommendation', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
