@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom';
 import './styles.css';
 
 const App = () => {
@@ -176,7 +175,8 @@ const App = () => {
 
     return (
 <div className="container">
-    <h1>Back Flexibility Analyzer</h1>
+    <h1>Child's Pose Flexibility Analyzer</h1>
+    <h4>Instructions: submit an image or a 30 second video of you performing a child's pose. We will analyze it and give you recommendations.</h4>
     <video ref={videoRef} autoPlay playsInline style={{ display: isRecording ? 'block' : 'none' }}></video>
     <div>
         <button onClick={isRecording ? stopRecording : startRecording}>
@@ -213,7 +213,7 @@ const App = () => {
         </button>
     </form>
     <div>
-        <h3>(only last 30 seconds will be used!)</h3>
+        <h3>(Video: only last 30 seconds will be used!)</h3>
     </div>
     {averageBackAngle !== null && (
         <div>
