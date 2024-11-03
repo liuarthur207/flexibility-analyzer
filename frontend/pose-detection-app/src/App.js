@@ -29,7 +29,7 @@ const App = () => {
         } catch (error) {
             setServerStatus('Error connecting to server');
         }
-    };
+    }; 
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
