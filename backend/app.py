@@ -57,7 +57,7 @@ def get_back_angle():
         return {'error': 'No video or image file provided'}, 400
 
     video_file = request.files['video']
-    
+     
     # Use a temporary file for the video upload
     suffix = '.webm' if video_file.filename.endswith('.webm') else '.mp4'
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
